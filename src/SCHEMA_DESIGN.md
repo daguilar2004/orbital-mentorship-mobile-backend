@@ -204,7 +204,7 @@ tasks
 
 ---
 
-## Collection: `notes`  ← Your Section
+## Collection: `notes`  
 
 ```
 notes
