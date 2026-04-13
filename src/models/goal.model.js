@@ -2,16 +2,18 @@ const mongoose = require("mongoose");
 
 const goalSchema = new mongoose.Schema(
   {
-    //user: {
-      //type: mongoose.Schema.Types.ObjectId,
-      //ref: "User",
-     // required: true,
-   // },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
 
     title: {
       type: String,
       required: true,
       trim: true,
+      maxlength: 120,
     },
 
     time: {
@@ -59,6 +61,11 @@ const goalSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Habit",
       default: null,
+    },
+
+    isArchived: {
+      type: Boolean,
+      default: false,
     },
   },
   {

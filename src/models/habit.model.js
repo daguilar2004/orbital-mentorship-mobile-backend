@@ -33,22 +33,23 @@ const habitAnswersSchema = new mongoose.Schema(
 
 const habitSchema = new mongoose.Schema(
   {
-   // user: {
-     // type: mongoose.Schema.Types.ObjectId,
-     // ref: "User",
-     // required: true,
-    //},
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
 
     title: {
       type: String,
       required: true,
       trim: true,
+      maxlength: 120,
     },
 
     days: {
       type: [String],
       enum: ["S", "M", "T", "W", "T2", "F", "S2"],
-      required: true,
       default: [],
       validate: {
         validator: function (value) {
@@ -61,6 +62,12 @@ const habitSchema = new mongoose.Schema(
     completedOn: {
       type: String,
       default: null,
+      validate: {
+        validator: function (value) {
+          return value === null || /^\d{4}-\d{2}-\d{2}$/.test(value);
+        },
+        message: "completedOn must be null or in YYYY-MM-DD format.",
+      },
     },
 
     linkedGoalId: {

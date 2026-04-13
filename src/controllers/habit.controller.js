@@ -1,7 +1,10 @@
+const mongoose = require("mongoose");
 const Habit = require("../models/habit.model");
 const Goal = require("../models/goal.model");
 
 const VALID_DAYS = ["S", "M", "T", "W", "T2", "F", "S2"];
+
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 function getTodayKey() {
   const now = new Date();
@@ -26,10 +29,9 @@ function buildHabitAnswers(answers = {}) {
   };
 }
 
-// GET /api/habits
 exports.getHabits = async (req, res) => {
   try {
-    const habits = await Habit.find().sort({ createdAt: -1 });
+    const habits = await Habit.find({ userId: req.user.id }).sort({ createdAt: -1 });
     res.status(200).json(habits);
   } catch (error) {
     console.error("getHabits error:", error);
@@ -37,10 +39,15 @@ exports.getHabits = async (req, res) => {
   }
 };
 
-// GET /api/habits/:id
 exports.getHabitById = async (req, res) => {
   try {
-    const habit = await Habit.findById(req.params.id);
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: "Invalid habit ID." });
+    }
+
+    const habit = await Habit.findOne({ _id: id, userId: req.user.id });
 
     if (!habit) {
       return res.status(404).json({ message: "Habit not found." });
@@ -53,7 +60,6 @@ exports.getHabitById = async (req, res) => {
   }
 };
 
-// POST /api/habits
 exports.createHabit = async (req, res) => {
   try {
     const {
@@ -73,7 +79,12 @@ exports.createHabit = async (req, res) => {
       return res.status(400).json({ message: "At least one day must be selected." });
     }
 
+    if (linkedGoalId && !isValidObjectId(linkedGoalId)) {
+      return res.status(400).json({ message: "Invalid linkedGoalId." });
+    }
+
     const newHabit = await Habit.create({
+      userId: req.user.id,
       title: title.trim(),
       days: normalizedDays,
       completedOn,
@@ -82,8 +93,8 @@ exports.createHabit = async (req, res) => {
     });
 
     if (linkedGoalId) {
-      await Goal.findByIdAndUpdate(
-        linkedGoalId,
+      await Goal.findOneAndUpdate(
+        { _id: linkedGoalId, userId: req.user.id },
         { linkedHabitId: newHabit._id },
         { new: true }
       );
@@ -96,12 +107,20 @@ exports.createHabit = async (req, res) => {
   }
 };
 
-// PUT /api/habits/:id
 exports.updateHabit = async (req, res) => {
   try {
+    const { id } = req.params;
     const { title, days, completedOn, linkedGoalId, answers } = req.body;
 
-    const habit = await Habit.findById(req.params.id);
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: "Invalid habit ID." });
+    }
+
+    if (linkedGoalId && !isValidObjectId(linkedGoalId)) {
+      return res.status(400).json({ message: "Invalid linkedGoalId." });
+    }
+
+    const habit = await Habit.findOne({ _id: id, userId: req.user.id });
 
     if (!habit) {
       return res.status(404).json({ message: "Habit not found." });
@@ -135,8 +154,8 @@ exports.updateHabit = async (req, res) => {
       const nextLinkedGoalId = linkedGoalId || null;
 
       if (oldLinkedGoalId && oldLinkedGoalId !== String(nextLinkedGoalId || "")) {
-        await Goal.findByIdAndUpdate(
-          oldLinkedGoalId,
+        await Goal.findOneAndUpdate(
+          { _id: oldLinkedGoalId, userId: req.user.id },
           { $unset: { linkedHabitId: 1 } }
         );
       }
@@ -144,8 +163,8 @@ exports.updateHabit = async (req, res) => {
       habit.linkedGoalId = nextLinkedGoalId;
 
       if (nextLinkedGoalId) {
-        await Goal.findByIdAndUpdate(
-          nextLinkedGoalId,
+        await Goal.findOneAndUpdate(
+          { _id: nextLinkedGoalId, userId: req.user.id },
           { linkedHabitId: habit._id }
         );
       }
@@ -159,10 +178,15 @@ exports.updateHabit = async (req, res) => {
   }
 };
 
-// PATCH /api/habits/:id/toggle
 exports.toggleHabitCompletion = async (req, res) => {
   try {
-    const habit = await Habit.findById(req.params.id);
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: "Invalid habit ID." });
+    }
+
+    const habit = await Habit.findOne({ _id: id, userId: req.user.id });
 
     if (!habit) {
       return res.status(404).json({ message: "Habit not found." });
@@ -179,18 +203,23 @@ exports.toggleHabitCompletion = async (req, res) => {
   }
 };
 
-// DELETE /api/habits/:id
 exports.deleteHabit = async (req, res) => {
   try {
-    const habit = await Habit.findById(req.params.id);
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: "Invalid habit ID." });
+    }
+
+    const habit = await Habit.findOne({ _id: id, userId: req.user.id });
 
     if (!habit) {
       return res.status(404).json({ message: "Habit not found." });
     }
 
     if (habit.linkedGoalId) {
-      await Goal.findByIdAndUpdate(
-        habit.linkedGoalId,
+      await Goal.findOneAndUpdate(
+        { _id: habit.linkedGoalId, userId: req.user.id },
         { $unset: { linkedHabitId: 1 } }
       );
     }

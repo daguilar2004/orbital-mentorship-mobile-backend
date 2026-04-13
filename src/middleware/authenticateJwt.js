@@ -5,7 +5,7 @@ const authenticateJwt = (req, res, next) => {
   // For development, just pass through without authentication
   // In production, this would verify JWT tokens
   req.user = {
-    id: "mock-user-id",
+    id: "507f1f77bcf86cd799439011",
   };
   next();
 };

@@ -6,7 +6,7 @@ const {
   getGoalById,
   createGoal,
   updateGoal,
-  toggleGoalComplete,
+  toggleCompleteGoal,
   deleteGoal,
 } = require("../controllers/goal.controller");
 
@@ -16,7 +16,7 @@ router.get("/", authenticateJwt, getGoals);
 router.get("/:id", authenticateJwt, getGoalById);
 router.post("/", authenticateJwt, createGoal);
 router.put("/:id", authenticateJwt, updateGoal);
-router.patch("/:id/toggle-complete", authenticateJwt, toggleGoalComplete);
+router.patch("/:id/toggle-complete", authenticateJwt, toggleCompleteGoal);
 router.delete("/:id", authenticateJwt, deleteGoal);
 
 module.exports = router;
