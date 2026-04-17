@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 // TODO: Finish Mentee schema
 
 const menteeSchema = new mongoose.Schema({
+    
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

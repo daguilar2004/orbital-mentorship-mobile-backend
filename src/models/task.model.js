@@ -12,10 +12,12 @@ const attachmentSchema = new mongoose.Schema(
 
 const taskSchema = new mongoose.Schema(
   {
-    mentorshipId: { type: mongoose.Schema.Types.ObjectId, ref: "Mentorship", required: true },
 
-    // Optional: link tasks to a phase/module concept
-    phaseOrder: { type: Number, default: 1 }, // phase 1,2,3... (simple for now)
+  phaseId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Phase",
+  required: true,
+},
 
     title: { type: String, required: true, trim: true },
     category: { type: String, trim: true },
@@ -29,7 +31,7 @@ const taskSchema = new mongoose.Schema(
       required: true
     },
 
-    xpPossible: { type: Number, default: 100 },
+    xp: { type: Number, default: 100 },
 
     // Mentor-editable description
     description: { type: String, trim: true },

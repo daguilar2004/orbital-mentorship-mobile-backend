@@ -18,6 +18,10 @@ const mentorshipSchema = new mongoose.Schema({
     streamChatChannelId: {    // id for chat channel in Stream associated w/ this mentorship
         type: String,
     },
+    phases: [{
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'Phase'
+}],
     tasks: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Task',
