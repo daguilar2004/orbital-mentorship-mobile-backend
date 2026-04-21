@@ -1,4 +1,26 @@
 const Task = require("../models/task.model");
+const Phase = require("../models/phase.model");
+
+exports.createTask = async (req, res, next) => {
+  try {
+    const { phaseId, title, dueDate, description, xp } = req.body;
+
+    const task = await Task.create({
+  phaseId,
+  title,
+  dueDate,
+  description,
+  xp
+});
+
+
+    res.status(201).json(task);
+  } catch (e) {
+    next(e);
+  }
+};
+
+
 
 exports.getTaskById = async (req, res, next) => {
   try {

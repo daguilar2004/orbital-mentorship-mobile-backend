@@ -40,10 +40,7 @@ const phaseSchema = new mongoose.Schema(
       enum: ["upcoming", "current", "completed"],
       default: "upcoming",
     },
-    tasks: [{
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "Task"
-}]
+    
   },
   { timestamps: true },
 
