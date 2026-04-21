@@ -1,47 +1,119 @@
-const express = require('express')
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 
 // middleware
-const { authenticateJwt } = require('../middleware/authenticateJwt')
-const { authorizeJwt } = require('../middleware/authorizeJwt')
-const { validateUserInDatabase } = require('../middleware/validateUserInDatabase')
+const { authenticateJwt } = require("../middleware/authenticateJwt");
+const { authorizeJwt } = require("../middleware/authorizeJwt");
+const { validateUserInDatabase } = require("../middleware/validateUserInDatabase");
 
 // controller functions
 const {
-    getUserDocument,
-    getMyUserDocument,
-    retakeSteps,
-    updateUserDocument,
-    getUserSetUpStatus,
-    updateAudioNotificationSettings,
-    updateWebsiteNotificationSettings,
-    updateAuth0UserProfilePicture
-} = require('../controllers/user.controller')
+  getUserDocument,
+  getMyUserDocument,
+  retakeSteps,
+  updateUserDocument,
+  getUserSetUpStatus,
+  updateAudioNotificationSettings,
+  updateWebsiteNotificationSettings,
+  updateAuth0UserProfilePicture
+} = require("../controllers/user.controller");
 
-const {
-    createFeedback
-} = require('../controllers/feedback.controller')
+const { createFeedback } = require("../controllers/feedback.controller");
 
-// apply router-level middleware
+/**
+ * ROUTE RULES:
+ * - Any request that needs "who is calling?" should use:
+ *   authenticateJwt -> validateUserInDatabase
+ *
+ * - Any route that uses ":id" should also use authorizeJwt,
+ *   so users can't modify others unless admin.
+ */
 
-// endpoints
-// this routing is probably not the best, fix later
-router.get('/other-users/:id', getUserDocument)
-router.get('/my-user', authenticateJwt, getMyUserDocument)   // sub optimal route but wtv
-router.patch('/:id', authenticateJwt, updateUserDocument)
-router.patch('/:id/profile-picture', authenticateJwt, updateAuth0UserProfilePicture)
-router.get('/:id/status', authenticateJwt, getUserSetUpStatus)
-router.delete('/:id')
+// PUBLIC-ish (your choice): view other user's public profile
+// If you want this private, add authenticateJwt + validateUserInDatabase
+router.get("/other-users/:id", getUserDocument);
 
-router.post('/:id/progress/retake', authenticateJwt, retakeSteps) // retake the progress survey
+// ✅ Best practice: "me" route (no :id needed)
+router.get(
+  "/me",
+  authenticateJwt,
+  validateUserInDatabase,
+  getMyUserDocument
+);
 
-// TODO: Implement these sub resource endpoints for user document
-// settings
-router.patch('/:id/settings/notifications/website', authenticateJwt, updateWebsiteNotificationSettings) // I only denote website since any future mobile app will have these settings different
-router.patch('/:id/settings/password', authenticateJwt)
-router.patch('/:id/settings/sounds/website', authenticateJwt, updateAudioNotificationSettings)
+// ✅ Update my user (safer than PATCH /:id)
+router.patch(
+  "/me",
+  authenticateJwt,
+  validateUserInDatabase,
+  updateUserDocument
+);
 
-// feedback
-router.post('/feedback/:userId', createFeedback);
+// ✅ Update profile picture (me)
+router.patch(
+  "/me/profile-picture",
+  authenticateJwt,
+  validateUserInDatabase,
+  updateAuth0UserProfilePicture
+);
 
-module.exports = router
+// ✅ Setup status (me)
+router.get(
+  "/me/status",
+  authenticateJwt,
+  validateUserInDatabase,
+  getUserSetUpStatus
+);
+
+// ✅ Retake steps (me)
+router.post(
+  "/me/progress/retake",
+  authenticateJwt,
+  validateUserInDatabase,
+  retakeSteps
+);
+
+// ✅ Settings (me)
+router.patch(
+  "/me/settings/notifications/website",
+  authenticateJwt,
+  validateUserInDatabase,
+  updateWebsiteNotificationSettings
+);
+
+router.patch(
+  "/me/settings/sounds/website",
+  authenticateJwt,
+  validateUserInDatabase,
+  updateAudioNotificationSettings
+);
+
+// ✅ Feedback: must be logged in to submit feedback
+router.post(
+  "/feedback/:userId",
+  authenticateJwt,
+  validateUserInDatabase,
+  createFeedback
+);
+
+/**
+ * OPTIONAL: if you still want admin or "self" access routes by id:
+ * Only keep these if you actually need them.
+ */
+router.patch(
+  "/:id",
+  authenticateJwt,
+  validateUserInDatabase,
+  authorizeJwt({ allowSelf: true, allowRoles: ["admin"] }),
+  updateUserDocument
+);
+
+router.get(
+  "/:id/status",
+  authenticateJwt,
+  validateUserInDatabase,
+  authorizeJwt({ allowSelf: true, allowRoles: ["admin"] }),
+  getUserSetUpStatus
+);
+
+module.exports = router;
