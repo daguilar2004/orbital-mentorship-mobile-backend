@@ -12,12 +12,11 @@ const attachmentSchema = new mongoose.Schema(
 
 const taskSchema = new mongoose.Schema(
   {
-
-  phaseId: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "Phase",
-  required: true,
-},
+    phaseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Phase",
+      required: true,
+    },
 
     title: { type: String, required: true, trim: true },
     category: { type: String, trim: true },
@@ -28,26 +27,39 @@ const taskSchema = new mongoose.Schema(
       type: String,
       enum: ["pending", "submitted", "approved", "rejected"],
       default: "pending",
-      required: true
+      required: true,
     },
 
     xp: { type: Number, default: 100 },
 
-    // Mentor-editable description
     description: { type: String, trim: true },
 
-    // Mentee submission
+    // ✅ NEW
+    expectedTime: {
+      value: { type: Number, min: 1 },
+      unit: {
+        type: String,
+        enum: ["hours", "days", "weeks"],
+      },
+    },
+
+    // ✅ NEW
+    skills: {
+      type: [String],
+      default: [],
+    },
+
+    // submission
     submissionText: { type: String, trim: true },
     submissionFiles: { type: [attachmentSchema], default: [] },
     submittedAt: { type: Date },
 
-    // Mentor review
+    // review
     mentorFeedback: { type: String, trim: true, maxLength: 2000 },
     reviewedAt: { type: Date },
 
-    completionDate: { type: Date }
+    completionDate: { type: Date },
   },
   { timestamps: true }
 );
-
 module.exports = mongoose.model("Task", taskSchema);

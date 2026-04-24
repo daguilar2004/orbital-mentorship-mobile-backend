@@ -53,7 +53,6 @@ const getMenteeProfile = async (req, res) => {
 // Made specifically for updating experience bar after level submission on mentee side
 const getMenteeXp = async (req, res) => {
     try {
-        const menteeId = req.user.mentee_id;
         const mentee = await Mentee.findById(req.params.id);
 
         // Check if mentee exists
@@ -62,7 +61,7 @@ const getMenteeXp = async (req, res) => {
         }
 
         return res.status(200).json({
-            xp: mentee.profile.xp,
+            xp: mentee.profile?.xp ?? 0,
         });
     }
     catch (error) {

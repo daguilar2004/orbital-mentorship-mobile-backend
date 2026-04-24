@@ -29,6 +29,13 @@ router.get("/phase/:phaseId", async (req, res, next) => {
   }
 });
 
+
+// FULL UPDATE
+router.put("/:id", taskController.updateTask);
+
+// DELETE
+router.delete("/:id", taskController.deleteTask);
+
 // UPDATE DESCRIPTION
 router.patch("/:id/description", taskController.updateDescription);
 
