@@ -70,7 +70,7 @@ const getNoteById = async (req, res) => {
 const updateNote = async (req, res) => {
   try {
     const { noteId } = req.params;
-    const { type, title, text, formatting } = req.body;
+    const { type, title, text, formatting, isFavorite } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(noteId)) {
       return res.status(400).json({ message: "Invalid note ID" });
@@ -83,6 +83,7 @@ const updateNote = async (req, res) => {
         title,
         text,
         formatting,
+        isFavorite,
         updatedAt: new Date(),
       },
       { new: true, runValidators: true }
@@ -120,6 +121,47 @@ const deleteNote = async (req, res) => {
   }
 };
 
+const toggleFavorite = async (req, res) => {
+  try {
+    const { noteId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(noteId)) {
+      return res.status(400).json({ message: "Invalid note ID" });
+    }
+
+    const note = await Note.findById(noteId);
+
+    if (!note) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+
+    note.isFavorite = !note.isFavorite;
+    note.updatedAt = new Date();
+    await note.save();
+
+    res.status(200).json(note);
+  } catch (error) {
+    console.error("Failed to toggle favorite:", error);
+    res.status(500).json({ message: "Failed to toggle favorite" });
+  }
+};
+
+const getFavoriteNotesByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    const notes = await Note.find({ userId, isFavorite: true }).sort({ createdAt: -1 });
+    res.status(200).json(notes);
+  } catch (error) {
+    console.error("Failed to retrieve favorite notes:", error);
+    res.status(500).json({ message: "Failed to retrieve favorite notes" });
+  }
+};
+
 const deleteNotesByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -147,4 +189,6 @@ module.exports = {
   updateNote,
   deleteNote,
   deleteNotesByUserId,
+  toggleFavorite,
+  getFavoriteNotesByUserId,
 };

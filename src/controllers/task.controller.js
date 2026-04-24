@@ -26,6 +26,29 @@ exports.updateDescription = async (req, res, next) => {
   }
 };
 
+// General update task (for editing title, category, dueDate, description, isFavorite, etc.)
+exports.updateTask = async (req, res, next) => {
+  try {
+    const { title, category, dueDate, description, isFavorite } = req.body;
+    const updateFields = {};
+    if (title !== undefined) updateFields.title = title;
+    if (category !== undefined) updateFields.category = category;
+    if (dueDate !== undefined) updateFields.dueDate = new Date(dueDate);
+    if (description !== undefined) updateFields.description = description;
+    if (isFavorite !== undefined) updateFields.isFavorite = isFavorite;
+
+    const t = await Task.findByIdAndUpdate(
+      req.params.id,
+      updateFields,
+      { new: true }
+    );
+    if (!t) return res.status(404).json({ error: "Task not found" });
+    res.json(t);
+  } catch (e) {
+    next(e);
+  }
+};
+
 // Mentee submits/resubmits a task
 exports.submitTask = async (req, res, next) => {
   try {
@@ -71,6 +94,29 @@ exports.reviewTask = async (req, res, next) => {
 
     await t.save();
     res.json(t);
+  } catch (e) {
+    next(e);
+  }
+};
+
+exports.toggleFavorite = async (req, res, next) => {
+  try {
+    const t = await Task.findById(req.params.id);
+    if (!t) return res.status(404).json({ error: "Task not found" });
+
+    t.isFavorite = !t.isFavorite;
+    await t.save();
+    res.json(t);
+  } catch (e) {
+    next(e);
+  }
+};
+
+exports.getFavoriteTasks = async (req, res, next) => {
+  try {
+    const mentorshipId = req.params.mentorshipId;
+    const tasks = await Task.find({ mentorshipId, isFavorite: true }).sort({ phaseOrder: 1, dueDate: 1 });
+    res.json(tasks);
   } catch (e) {
     next(e);
   }

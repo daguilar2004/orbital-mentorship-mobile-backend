@@ -43,7 +43,9 @@ const taskSchema = new mongoose.Schema(
     mentorFeedback: { type: String, trim: true, maxLength: 2000 },
     reviewedAt: { type: Date },
 
-    completionDate: { type: Date }
+    completionDate: { type: Date },
+
+    isFavorite: { type: Boolean, default: false }
   },
   { timestamps: true }
 );
