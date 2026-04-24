@@ -1,7 +1,48 @@
 const router = require("express").Router();
+const taskController = require("../controllers/task.controller");
 
-router.get("/", (req, res) => {
-  res.json({ ok: true, service: "orbital-mentorship-backend" });
+// CREATE
+router.post("/", taskController.createTask);
+
+// GET ALL TASKS
+router.get("/", async (req, res, next) => {
+  try {
+    const Task = require("../models/task.model");
+    const tasks = await Task.find();
+    res.json(tasks);
+  } catch (e) {
+    next(e);
+  }
 });
+
+// GET BY ID
+router.get("/:id", taskController.getTaskById);
+
+// BY PHASE
+router.get("/phase/:phaseId", async (req, res, next) => {
+  try {
+    const Task = require("../models/task.model");
+    const tasks = await Task.find({ phaseId: req.params.phaseId });
+    res.json(tasks);
+  } catch (e) {
+    next(e);
+  }
+});
+
+
+// FULL UPDATE
+router.put("/:id", taskController.updateTask);
+
+// DELETE
+router.delete("/:id", taskController.deleteTask);
+
+// UPDATE DESCRIPTION
+router.patch("/:id/description", taskController.updateDescription);
+
+// SUBMIT
+router.post("/:id/submit", taskController.submitTask);
+
+// REVIEW
+router.post("/:id/review", taskController.reviewTask);
 
 module.exports = router;
