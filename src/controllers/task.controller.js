@@ -111,6 +111,29 @@ exports.updateDescription = async (req, res, next) => {
   }
 };
 
+// General update task (for editing title, category, dueDate, description, isFavorite, etc.)
+exports.updateTask = async (req, res, next) => {
+  try {
+    const { title, category, dueDate, description, isFavorite } = req.body;
+    const updateFields = {};
+    if (title !== undefined) updateFields.title = title;
+    if (category !== undefined) updateFields.category = category;
+    if (dueDate !== undefined) updateFields.dueDate = new Date(dueDate);
+    if (description !== undefined) updateFields.description = description;
+    if (isFavorite !== undefined) updateFields.isFavorite = isFavorite;
+
+    const t = await Task.findByIdAndUpdate(
+      req.params.id,
+      updateFields,
+      { new: true }
+    );
+    if (!t) return res.status(404).json({ error: "Task not found" });
+    res.json(t);
+  } catch (e) {
+    next(e);
+  }
+};
+
 exports.submitTask = async (req, res, next) => {
   try {
     const { submissionText, submissionFiles } = req.body;

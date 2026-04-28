@@ -38,6 +38,7 @@ const noteSchema = new mongoose.Schema(
         fontColor: "#000000",
       }),
     },
+    isFavorite: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },
