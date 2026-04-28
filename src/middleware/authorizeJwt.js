@@ -7,6 +7,4 @@ const authorizeJwt = (req, res, next) => {
   next();
 };
 
-module.exports = {
-  authorizeJwt,
-};
+module.exports = authorizeJwt;
